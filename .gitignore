@@ -1,0 +1,19 @@
+# Ignorar node_modules
+node_modules/
+
+# Ignorar arquivos temporários do sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# Ignorar arquivos de ambiente
+.env
+
+# Ignorar build/output
+dist/
+build/
+
+# Ignorar pastas específicas do VSCode
+.vscode/
+
+
