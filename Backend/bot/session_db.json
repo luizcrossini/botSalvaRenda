@@ -1,0 +1,28 @@
+{
+  "sessions": [
+    {
+      "id": "2006698670:2006698670",
+      "data": {
+        "user": {
+          "id": "0eee6900-5910-4161-bcd1-10f74ffe83a4",
+          "fullname": "zorro",
+          "email": "aws@luizrossini.com.br",
+          "password": "$2b$10$KHhEcPFyfqp3pnHPofnfnujOawqnUbTCT7GuMrmVchgQI.r14NFsm",
+          "google_id": null,
+          "created_at": "2025-06-28T17:26:05.000Z",
+          "updated_at": "2025-06-28T14:43:57.000Z",
+          "mensagem_post": "Teste",
+          "telegram_id": null
+        },
+        "modo": "post_story",
+        "userId": "0eee6900-5910-4161-bcd1-10f74ffe83a4"
+      }
+    },
+    {
+      "id": "7370154392:7370154392",
+      "data": {
+        "loginStep": "email"
+      }
+    }
+  ]
+}

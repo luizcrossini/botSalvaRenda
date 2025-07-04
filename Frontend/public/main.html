@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Salva Renda Afiliados</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="main-page">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <button id="btn-logout" class="back-button">
+      <img src="/assets/logout.svg" alt="Voltar">
+    </button>
+    <span class="nav-title">Salva Renda Afiliados</span>
+    <img src="/assets/logotipo.png" class="nav-logo" alt="Logo Salva Renda">
+  </div>
+<div id="user-info"></div>
+  <!-- Conteúdo Principal -->
+  <div class="container-card">
+
+    <!-- Card 1: Robô Salva Renda -->
+    <a href="https://t.me/SalvaRendaBot" id="card-robo" class="card">
+      <img src="/assets/robo.png" class="card-img" alt="Robô Salva Renda">
+      <h2 class="card-title">Robô Salva Renda</h2>
+      <p class="card-text">
+        Robô do Telegram, onde você envia o link do produto (Shopee, Amazon, Mercado Livre, etc) e geramos os Stories e posts para Grupos de mensageria
+      </p>
+    </a>
+
+    <!-- Card 2: Salva Renda Afiliados -->
+    <a href="roi.html" id="card-robo" class="card">
+      <img src="/assets/calculadora.png" class="card-img" alt="Salva Renda Afiliados">
+      <h2 class="card-title">Calculadora de Retorno de Investimento (ROI)</h2>
+      <p class="card-text">
+        Calculadora para analisar o seu investimento e o ganho com esse investimento!
+      </p>
+    </a>
+
+    <!-- Card GPT: Salva Renda Afiliados -->
+    <a href="#" id="card-robo" class="card" onclick="verificarAcesso(event)">
+  <img src="/assets/ia.png" class="card-img" alt="Salva Renda Afiliados">
+  <h2 class="card-title">Salva Renda Copywriter</h2>
+  <p class="card-text">
+    Inteligência artificial que cria legendas e roteiros de vídeos, criação de imagens e tudo que você precisa para o sucesso!
+  </p>
+</a>
+
+  </div>
+  <script>
+  async function verificarAcesso(event) {
+    event.preventDefault();
+
+    const userId = localStorage.getItem('user_id');
+    if (!userId) {
+      alert('Você precisa estar logado.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/assinatura-status/${userId}`);
+      const data = await res.json();
+
+      console.log('🔎 Status recebido do backend:', data);
+
+      // 🔒 Validação segura do status
+      const status = data.status_assinatura?.toString().trim().toLowerCase();
+
+      if (status === 'ativa') {
+        window.open(
+          "https://chatgpt.com/g/g-6866bd821eb881918c0e6758ea9e8294-salva-renda-copywriter",
+          "_blank",
+          "width=1024,height=720"
+        );
+      } else {
+        alert("⚠️ Sua assinatura está inativa. Faça seu plano agora para liberar o acesso!");
+        window.location.href = "./planos.html";
+      }
+
+    } catch (err) {
+      console.error("❌ Erro ao verificar assinatura:", err);
+      alert("Erro ao verificar assinatura. Tente novamente.");
+    }
+  }</script>
+ <script>   document.addEventListener('DOMContentLoaded', () => {
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      // Remove o token e redireciona ao login
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    });
+  }
+});</script>
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>
