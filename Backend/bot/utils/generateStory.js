@@ -22,61 +22,77 @@ function drawMultilineText(ctx, text, x, y, maxWidth, lineHeight) {
 }
 
 
-export async function generateStoryImage({ title, price, image, templatePath, outputPath }) {
+export async function generateStoryImage({ title, price, image, templatePath, outputPath, plataforma }) {
   try {
     const template = await loadImage(templatePath);
     const canvas = createCanvas(template.width, template.height);
     const ctx = canvas.getContext('2d');
 
-    // 🖼️ Fundo do template
+    // 🖼️ Fundo
     ctx.drawImage(template, 0, 0, template.width, template.height);
 
-    // 📦 Imagem do produto centralizada e menor
+    // 📦 Imagem do produto
     const productImage = await loadImage(image);
- // Defina o tamanho máximo permitido
-const maxWidth = 400;
-const maxHeight = 400;
 
-// Calcula proporção para manter o aspect ratio da imagem
-let productWidth = productImage.width;
-let productHeight = productImage.height;
+    // 🔄 Definir tamanho ideal baseado na plataforma
+    let maxWidth = 400;
+    let maxHeight = 400;
 
-if (productWidth > maxWidth || productHeight > maxHeight) {
-  const widthRatio = maxWidth / productWidth;
-  const heightRatio = maxHeight / productHeight;
-  const ratio = Math.min(widthRatio, heightRatio);
+    switch (plataforma?.toLowerCase()) {
+      case 'amazon':
+        maxWidth = 300;
+        maxHeight = 300;
+        break;
+      case 'mercado livre':
+        maxWidth = 400;
+        maxHeight = 400;
+        break;
+      case 'shopee':
+        maxWidth = 400;
+        maxHeight = 400;
+        break;
+      case 'natura':
+        maxWidth = 400;
+        maxHeight = 400;
+      default:
+        maxWidth = 380;
+        maxHeight = 380;
+    }
 
-  productWidth = productWidth * ratio;
-  productHeight = productHeight * ratio;
-}
+    // 🧮 Redimensionar mantendo proporção
+    let productWidth = productImage.width;
+    let productHeight = productImage.height;
 
-// Centraliza a imagem no canvas
-const productX = (canvas.width - productWidth) / 2;
-const productY = 250; // você pode ajustar esse valor conforme o layout
+    const widthRatio = maxWidth / productWidth;
+    const heightRatio = maxHeight / productHeight;
+    const ratio = Math.min(widthRatio, heightRatio);
 
-ctx.drawImage(productImage, productX, productY, productWidth, productHeight);
-    // 🏷️ Título do produto
+    productWidth *= ratio;
+    productHeight *= ratio;
+
+    const productX = (canvas.width - productWidth) / 2;
+    const productY = 250;
+
+    ctx.drawImage(productImage, productX, productY, productWidth, productHeight);
+
+    // 🏷️ Título
     ctx.font = 'bold 36px Arial';
-    ctx.fillStyle = '#000000';
-    const titleX = 80;
-    const titleY = 700;
-    drawMultilineText(ctx, title || 'Produto sem título', titleX, titleY, 640, 40);
+    ctx.fillStyle = '#000';
+    drawMultilineText(ctx, title || 'Produto sem título', 80, 700, 640, 40);
 
-    // 💰 Preço destacado em retângulo amarelo com texto preto
+    // 💰 Preço
+    const priceText = price || 'Preço indisponível';
     ctx.font = 'bold 48px Arial';
-    ctx.fillStyle = '#000000';
-    const priceText = `${price}` || 'Preço indisponível';
     const priceX = 80;
-    const priceY = titleY + 100;
+    const priceY = 800;
     const priceWidth = ctx.measureText(priceText).width + 40;
-    const priceHeight = 70;
 
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(priceX, priceY, priceWidth, priceHeight);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(priceX, priceY, priceWidth, 70);
     ctx.fillStyle = '#FFFF00';
     ctx.fillText(priceText, priceX + 20, priceY + 50);
 
-    // 💾 Salvar imagem final
+    // 💾 Salvar
     const buffer = canvas.toBuffer('image/jpeg');
     fs.writeFileSync(outputPath, buffer);
     console.log('✅ Imagem gerada:', outputPath);

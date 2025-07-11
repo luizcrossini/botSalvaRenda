@@ -1,56 +1,60 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
+import puppeteer from 'puppeteer';
 
-dotenv.config();
+export function isShopeeLink(link) {
+  return link.includes('shopee.com');
+}
 
-const APP_ID = process.env.SHOPEE_APP_ID;
-const SECRET = process.env.SHOPEE_SECRET;
-
-export async function getShopeeProductInfo(url) {
+export async function getShopeeProductInfo(shortUrl) {
   try {
-    // Etapa 1: Consulta à API oficial da Shopee Afiliados
-    const apiUrl = 'https://affiliate.shopee.com.br/api/v1/product_link/info';
-    const response = await axios.post(
-      apiUrl,
-      { url },
-      {
-        headers: {
-          'x-partner-id': APP_ID,
-          'x-partner-key': SECRET,
-          'Content-Type': 'application/json'
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+
+    let productInfo = null;
+
+    // Intercepta chamadas da API interna
+    page.on('response', async (response) => {
+      const reqUrl = response.url();
+      if (reqUrl.includes('/api/v4/item/get')) {
+        try {
+          const json = await response.json();
+          const data = json.item_basic;
+
+          productInfo = {
+            titulo: data.name,
+            preco: `R$ ${(data.price / 100000).toFixed(2).replace('.', ',')}`,
+            preco_antigo: data.price_before_discount
+              ? `R$ ${(data.price_before_discount / 100000).toFixed(2).replace('.', ',')}`
+              : null,
+            image: `https://down-br.img.susercontent.com/file/${data.image}`,
+            link: shortUrl,
+          };
+        } catch (err) {
+          console.error('Erro ao processar JSON:', err.message);
         }
       }
-    );
+    });
 
-    const data = response.data;
+    // Acessa a página final
+    await page.goto(shortUrl, { waitUntil: 'networkidle2' });
 
-    if (!data || !data.data) {
-      throw new Error('Shopee retornou dados incompletos.');
+    // Aguarda alguns segundos para garantir que o JSON seja interceptado
+    await page.waitForTimeout(4000);
+
+    await browser.close();
+
+    if (!productInfo) {
+      throw new Error('❌ Produto não encontrado ou JSON não interceptado.');
     }
 
-    const produto = data.data;
-
-    return {
-      titulo: produto.name || 'Produto sem nome',
-      preco: produto.price || 'Preço não informado',
-      preco_antigo: produto.original_price || '',
-      image: produto.image_url,
-      link: produto.product_url
-    };
-
+    return productInfo;
   } catch (error) {
     console.error('❌ Erro ao buscar produto Shopee:', error.message);
     return {
-      titulo: 'Erro ao buscar produto Shopee',
+      titulo: 'Erro',
       preco: '',
       preco_antigo: '',
       image: '',
-      link: url
+      link: shortUrl,
     };
   }
-}
-
-// Validador
-export function isShopeeLink(link) {
-  return link.includes('shopee.com.br');
 }

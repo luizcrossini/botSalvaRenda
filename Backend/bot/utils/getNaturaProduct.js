@@ -1,106 +1,76 @@
-import axios from 'axios';
-import * as cheerio from 'cheerio';
+import puppeteer from 'puppeteer';
 
 export function isNaturaLink(link) {
-  return link.includes('natura.com.br');
+  return link.includes('natura.com');
 }
 
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function getNaturaProductInfo(link) {
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+
   try {
-    const { data: html } = await axios.get(link, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
-        'Accept-Language': 'pt-BR,pt;q=0.9',
-      }
-    });
+    await page.goto(link, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    const $ = cheerio.load(html);
-const produtoEsperado = link.split('/').pop().split('?')[0].toLowerCase();
- 
-    // 🏷️ Título (tentativa com fallback)
-    const title = $('h1.text-2xl').first().text().trim();
-    console.log('📦 Título:', title);
+    await page.waitForSelector('h1.text-2xl', { timeout: 15000 });
+    await delay(1500); // tempo extra para carregar os preços
 
+    const title = await page.$eval('h1.text-2xl', el => el.innerText.trim());
 
-  let price = 0;
-
-    // Estratégia principal: selecionar dentro da seção de preço principal, ignorando valores riscados
-    const container = $('#product-price');
-    const spans = container.find('span');
-
-    const precosFiltrados = spans
-      .toArray()
-      .map(el => {
-        const text = $(el).text().trim();
+    // 🧠 Captura todos os preços e classifica
+    const prices = await page.$$eval('span', spans => {
+      return spans.map(span => {
+        const text = span.innerText.trim();
+        const className = span.className || '';
         const match = text.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
-        if (match && !$(el).attr('class')?.includes('line-through')) {
-          return parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
+        if (match) {
+          return {
+            value: match[1],
+            raw: text,
+            className
+          };
         }
         return null;
-      })
-      .filter(v => v !== null && !isNaN(v));
+      }).filter(p => p);
+    });
 
-    if (precosFiltrados.length) {
-      price = Math.max(...precosFiltrados); // pega o maior valor visível (sem riscado)
-    }
+    let promotional = null;
+    let regular = null;
 
-    // Fallback se não encontrar
-    if (!price || isNaN(price)) {
-      const precos = [];
-      $('span').each((_, el) => {
-        const span = $(el);
-        const classAttr = span.attr('class') || '';
-        const raw = span.text().trim();
-        const match = raw.match(/(\d{1,3}(?:\.\d{3})*,\d{2})/);
-
-        if (match) {
-          const value = parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
-          if (!isNaN(value) && value < 10000) {
-            precos.push({ value, text: raw, classAttr });
-          }
-        }
-      });
-
-      if (!precos.length) {
-        throw new Error('❌ Nenhum preço encontrado na página.');
+    for (const p of prices) {
+      if (p.className.includes('line-through')) {
+        if (!regular) regular = p.value;
+      } else {
+        if (!promotional) promotional = p.value;
       }
-
-      precos.sort((a, b) => b.value - a.value);
-      const precoFinal = precos.find(p => !p.classAttr.includes('line-through')) || precos[0];
-      price = precoFinal.value;
     }
 
-    console.log('💰 Preço final identificado:', price);
+    const price = promotional || regular || 'Preço não encontrado';
+    const preco_antigo = promotional ? regular : null;
 
+    const image = await page.$$eval('img', imgs => {
+  const validImages = imgs.map(img => img.src).filter(src => src && src.startsWith('http'));
+  return validImages[1] || validImages[0] || ''; // pega a 2ª se existir, senão a 1ª
+});
 
-    // 🖼️ Imagem
-    let image = $('img#product-image').attr('src') ||
-                $('img[alt*="produto"]').attr('src') ||
-                $('img').first().attr('src');
-
-                console.log(image)
-
-    if (image && !image.startsWith('http')) {
-      image = 'https:' + image;
-    }
-
-    if (!title || isNaN(price) || !image) {
-      throw new Error('❌ Produto retornou dados incompletos.');
-    }
+    await browser.close();
 
     return {
-      title: title,
-      price: `${price.toFixed(2).replace('.', ',')}`,
-      preco_num: price,
+      title,
+      price,
+      preco_antigo,
       image,
       link
     };
 
   } catch (error) {
+    await browser.close();
     console.error('❌ Erro ao extrair produto:', error.message);
     return {
-      title: 'Erro ao extrair dados',
+      title: 'Erro ao extrair',
       price: '',
+      preco_antigo: '',
       image: '',
       link
     };

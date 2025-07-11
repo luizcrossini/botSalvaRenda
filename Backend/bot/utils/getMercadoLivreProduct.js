@@ -47,9 +47,13 @@ export async function getMercadoLivreProductInfo(link) {
     const cents = $('span.andes-money-amount__cents').first().text().trim();
     const price = parseFloat(`${priceText}.${cents || '00'}`);
 
-    let image = $('img.ui-pdp-ui-pdp-image ui-pdp-gallery__figure__image').first().attr('src') ||
-                $('img[data-src]').first().attr('data-src') ||
-                $('img').first().attr('src');
+    let image =
+  $('img.ui-pdp-image.ui-pdp-gallery__figure__image').first().attr('src') ||
+  $('figure.ui-pdp-gallery__figure img').first().attr('src') ||
+  $('img[data-src]').first().attr('data-src') ||
+  $('img').filter((_, el) => $(el).attr('src')?.includes('http') && $(el).attr('src')?.includes('ML')).first().attr('src');
+
+
 
     if (!title || isNaN(price) || !image) {
       throw new Error('❌ Produto retornou dados incompletos.');

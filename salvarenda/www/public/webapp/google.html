@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><meta name="viewport"content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none">
+  <title>Login Google</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    /* reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* corpo centralizado no viewport */
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f4f4;
+  }
+  
+  /* container com largura fixa para mobile */
+  .container {
+    width: 100%;
+    max-width: 360px;
+    padding: 0 20px;
+    text-align: center;
+  }
+  
+  /* ilustração */
+  .logo {
+    width: 80%;
+    max-width: 250px;
+    margin: 0 auto 30px;
+    display: block;
+  }
+  
+  div{
+    margin: 40px;
+  }
+
+  h1{
+    color: #28a745;
+    margin-bottom: 50px;
+  }
+
+  p{
+    color:#56937D;
+  }
+
+  strong{
+    color: #28a745;
+  }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+  <img src="logotipo sem fundo.png" alt="Logo Salva Renda" class="logo">
+
+  <h1 class="title">Salva Renda Afiliados</h1>
+  <p>O robô que te ajuda a fazer tudo mais rápido, trazendo mais <strong>DINHEIRO</strong> e principalmente <strong>QUALIDADE DE VIDA!</strong></p>
+  
+  <div id="buttonDiv"></div>
+
+</div>
+  <script>
+    
+    Telegram.WebApp.expand();
+
+    function handleCredentialResponse(response) {
+      fetch('/auth/google', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ idToken: response.credential })
+      })
+      .then(r => r.json())
+      .then(({ token }) => {
+        // envia token de volta ao bot dentro do Telegram
+        Telegram.WebApp.sendData(JSON.stringify({ token }));
+        Telegram.WebApp.close();
+      })
+      .catch(e => {
+        alert('Erro no login Google: ' + e.message);
+      });
+    }
+
+    window.onload = () => {
+    google.accounts.id.initialize({
+      client_id: '634543433969-m3olnno1u8sjg9nefhtmuh8crc3rd4k3.apps.googleusercontent.com',
+      callback: handleCredentialResponse   // aqui, a função importada globalmente
+    });
+    google.accounts.id.renderButton(
+      document.getElementById('buttonDiv'),
+      { theme: 'outline', size: 'large' }
+    );
+  };
+  </script>
+</body>
+</html>
