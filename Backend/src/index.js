@@ -9,6 +9,7 @@ import templateRoutes from './routes/template.routes.js';
 import bodyParser from 'body-parser';
 import webhookRoutes from './routes/webhook.routes.js';
 import assinaturaRoutes from './routes/assinatura.routes.js';
+import postbackRoutes from './routes/monetizzePostback.routes.js';
 
 const app = express();
 app.use(cors());
@@ -21,14 +22,15 @@ app.use('/products', productRoutes);
 app.use('/templates',templateRoutes);
 app.use('/webhook', webhookRoutes);
 app.use('/api', assinaturaRoutes);
+app.use('/postback', postbackRoutes);
 
 
 const PORT= process.env.PORT || 3000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const frontendPath = path.join(__dirname, '../../frontend/public');
-app.use(express.static(path.join(frontendPath)));
+// const frontendPath = path.join(__dirname, '../../frontend/public');
+// app.use(express.static(path.join(frontendPath)));
 
 
 app.use((err, req, res, next) => {

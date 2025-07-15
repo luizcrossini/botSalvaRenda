@@ -1,60 +1,80 @@
+// 🔁 getShopeeProductInfo com Puppeteer e Cheerio (baseado em tags/classes do HTML)
+
 import puppeteer from 'puppeteer';
+import * as cheerio from 'cheerio';
+import axios from 'axios';
 
 export function isShopeeLink(link) {
   return link.includes('shopee.com');
 }
 
-export async function getShopeeProductInfo(shortUrl) {
+/**
+ * 🔁 Resolve o redirecionamento de um link de afiliado Shopee usando o Puppeteer
+ */
+export async function resolveShopeeAffiliateLink(url) {
   try {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
 
-    let productInfo = null;
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-    // Intercepta chamadas da API interna
-    page.on('response', async (response) => {
-      const reqUrl = response.url();
-      if (reqUrl.includes('/api/v4/item/get')) {
-        try {
-          const json = await response.json();
-          const data = json.item_basic;
-
-          productInfo = {
-            titulo: data.name,
-            preco: `R$ ${(data.price / 100000).toFixed(2).replace('.', ',')}`,
-            preco_antigo: data.price_before_discount
-              ? `R$ ${(data.price_before_discount / 100000).toFixed(2).replace('.', ',')}`
-              : null,
-            image: `https://down-br.img.susercontent.com/file/${data.image}`,
-            link: shortUrl,
-          };
-        } catch (err) {
-          console.error('Erro ao processar JSON:', err.message);
-        }
-      }
-    });
-
-    // Acessa a página final
-    await page.goto(shortUrl, { waitUntil: 'networkidle2' });
-
-    // Aguarda alguns segundos para garantir que o JSON seja interceptado
-    await page.waitForTimeout(4000);
+    const resolvedUrl = page.url();
 
     await browser.close();
 
-    if (!productInfo) {
-      throw new Error('❌ Produto não encontrado ou JSON não interceptado.');
+    return resolvedUrl;
+  } catch (error) {
+    console.error('❌ Erro ao resolver link:', error.message);
+    return null;
+  }
+}
+
+/**
+ * 🛍️ Extrai os dados do produto da Shopee via DOM com Puppeteer e Cheerio
+ */
+export async function getShopeeProductInfo(link) {
+  try {
+    const resolvedLink = await resolveShopeeAffiliateLink(link);
+    if (!resolvedLink) throw new Error('❌ Não foi possível resolver o link');
+
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = await browser.newPage();
+    await page.goto(resolvedLink, { waitUntil: 'domcontentloaded' });
+
+    // Aguarda seletor da tag <h1> com título
+    await page.waitForSelector('h1', { timeout: 15000 });
+
+    const html = await page.content();
+    const $ = cheerio.load(html);
+
+    const title = $('h1').first().text().trim();
+    const image = $('meta[property="og:image"]').attr('content');
+
+     console.log('título:', title)
+    console.log('preço:', price)
+    console.log('imagem:', image)
+
+    // Tentativas de capturar preço
+    let price = null;
+    const priceSelectors = ['.pmmxKx', '._3n5NQx', '[class*=pdp-price]', '.pqTWkA', '.Ybrg9j'];
+    for (const selector of priceSelectors) {
+      const priceRaw = $(selector).first().text().trim();
+      if (priceRaw) {
+        price = priceRaw.replace(/[^\d,]/g, '').replace(',', '.');
+        break;
+      }
     }
 
-    return productInfo;
-  } catch (error) {
-    console.error('❌ Erro ao buscar produto Shopee:', error.message);
+    await browser.close();
+
     return {
-      titulo: 'Erro',
-      preco: '',
-      preco_antigo: '',
-      image: '',
-      link: shortUrl,
+      titulo: title,
+      preco: price,
+      image,
+      link: resolvedLink,
     };
+  } catch (error) {
+    console.error('❌ Erro ao extrair produto:', error.message);
+    return null;
   }
 }

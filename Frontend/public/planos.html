@@ -40,12 +40,14 @@
 
 <script>
    function planoMensal() {
-    const url = "https://siteseguro.net/PPU38CPRT8M"; // substitua pelo seu link real
+    const userId = localStorage.getItem('user_id');
+    const url = `https://app.monetizze.com.br/checkout/KPC435767?src=${userId}`; // substitua pelo seu link real
     window.open(url, "_blank", "width=720,height=600");
   }
 
   function planoAnual() {
-    const url = "https://siteseguro.net/PPU38CPRT8Q"; // substitua pelo seu link real
+    const userId = localStorage.getItem('user_id');
+    const url = `https://app.monetizze.com.br/checkout/DJR352876?src=${userId}`; // substitua pelo seu link real
     window.open(url, "_blank", "width=720,height=600");
   }
   

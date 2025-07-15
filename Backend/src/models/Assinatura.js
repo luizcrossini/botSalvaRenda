@@ -3,34 +3,35 @@ import { sequelize } from '../config/db.js';
 
 const Assinatura = sequelize.define('assinaturas', {
   user_id: {
-    type: DataTypes.CHAR(36),
-    allowNull: true,
-    field: 'user_id'
-  },
-  cpf: {
     type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    primaryKey: true  // 🔑 Aqui informamos ao Sequelize que CPF é a PK
+    primaryKey: true
   },
-  codigo_plano: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  nome_completo: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  data_ultima_mensalidade: {
-    type: DataTypes.DATEONLY,
-    allowNull: true,
-  },
-  status_assinatura: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  }
+  nome_completo: DataTypes.STRING,
+  email: DataTypes.STRING,
+  cpf: DataTypes.STRING,
+  telefone: DataTypes.STRING,
+  cep: DataTypes.STRING,
+  endereco: DataTypes.STRING,
+  numero: DataTypes.STRING,
+  complemento: DataTypes.STRING,
+  bairro: DataTypes.STRING,
+  cidade: DataTypes.STRING,
+  estado: DataTypes.STRING,
+  pais: DataTypes.STRING,
+  codigo_plano: DataTypes.STRING,
+  nome_plano: DataTypes.STRING,
+  status_assinatura: DataTypes.STRING,
+  data_inicio: DataTypes.DATE,
+  data_fim: DataTypes.DATE,
+  meio_pagamento: DataTypes.STRING,
+  forma_pagamento: DataTypes.STRING,
+  valor: DataTypes.STRING,
+  valor_recebido: DataTypes.STRING,
+  quantidade: DataTypes.STRING,
+  parcelas: DataTypes.STRING,
+  codigo_venda: DataTypes.STRING,
+  chave_unica: DataTypes.STRING,
 }, {
-  tableName: 'assinaturas',
   timestamps: false
 });
 
