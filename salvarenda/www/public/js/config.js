@@ -1,1 +1,1 @@
-export const API_BASE = window.location.origin;
+export const API_BASE = "https://api.luizrossini.com.br";
