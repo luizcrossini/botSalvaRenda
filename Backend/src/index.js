@@ -13,7 +13,7 @@ import postbackRoutes from './routes/monetizzePostback.routes.js';
 
 const app = express();
 app.use(cors({
-  origin: 'https://luizrossini.com.br',
+  origin: ['https://luizrossini.com.br/salvarendaapp', 'https://www.luizrossini.com.br/salvarendaapp'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
