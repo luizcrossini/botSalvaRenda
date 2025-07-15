@@ -12,7 +12,12 @@ import assinaturaRoutes from './routes/assinatura.routes.js';
 import postbackRoutes from './routes/monetizzePostback.routes.js';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: 'https://www.luizrossini.com.br',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
